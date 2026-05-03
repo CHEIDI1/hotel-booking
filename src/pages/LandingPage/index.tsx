@@ -1,5 +1,6 @@
 ﻿import Navbar from '../../components/Navbar'
-import Hero from './Hero'
+import Hero from './hero'
+import Sections from './Sections.tsx'
 import Footer from '../../components/Footer'
 
 export default function LandingPage() {
@@ -7,6 +8,7 @@ export default function LandingPage() {
     <div>
       <Navbar />
       <Hero />
+      <Sections />
       <Footer />
     </div>
   )

@@ -31,12 +31,15 @@ export default function Hero() {
         </Link>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white text-center">
-        <p className="text-sm tracking-widest mb-2">scroll</p>
-        <button  className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center mx-auto animate-bounce text-sm">
-          V
-        </button>
-      </div>
+<div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white text-center">
+  <p className="text-sm tracking-widest mb-2">scroll</p>
+  <button 
+    onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+    className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center mx-auto animate-bounce text-sm"
+  >
+    ↓
+  </button>
+</div>
     </section>
   )
 }
