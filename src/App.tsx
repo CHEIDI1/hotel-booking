@@ -1,30 +1,24 @@
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Contact from "./Contact";
-import Facilities from "./Facilities";
-import Home from "./Home";
-import Room from "./RoomandRate";
-import Testimonial from "./Testimonial";
-import Rooms from "./Roomcard";
-import MapSection from "./MapSection";
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import LandingPage from './pages/LandingPage'
+import Login from './pages/Auth/Login'
+import Register from './pages/Auth/Register'
+import ResetPassword from './pages/Auth/ResetPassword'
+import Dashboard from './pages/Dashboard'
+import Contact from './pages/Contact'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/Home" element={<Home />} />
-        <Route path="/facilities" element={<Facilities />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/roomandRate" element={<Room />} />
-        <Route path="/testimonial" element={<Testimonial />} />
-        <Route path="/roomcard" element={<Rooms />} />
-        <Route path="/mapsection" element={<MapSection />} />
-
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
-export default App;
+export default App
