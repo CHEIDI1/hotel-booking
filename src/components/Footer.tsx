@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export default function Footer() {
   return (
     <footer className="bg-[#0D2137] text-white py-12 px-6 md:px-20">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
         
         {/* Logo + description */}
         <div>
@@ -27,6 +27,29 @@ export default function Footer() {
             <li><Link to="/register" className="hover:text-[#C9A84C] transition">Réserver</Link></li>
           </ul>
         </div>
+{/* Réseaux sociaux */}
+<div>
+  <h3 className="text-[#C9A84C] font-bold tracking-widest text-sm uppercase mb-4">
+    Suivez-nous
+  </h3>
+  <div className="flex flex-col gap-3">
+    <a href="https://facebook.com" target="_blank" rel="noreferrer"
+      className="flex items-center gap-3 text-gray-400 hover:text-[#C9A84C] transition group">
+      <span className="w-9 h-9 border border-gray-600 rounded-full flex items-center justify-center group-hover:border-[#C9A84C] transition text-sm flex-shrink-0">f</span>
+      <span className="text-sm">Facebook</span>
+    </a>
+    <a href="https://linkedin.com" target="_blank" rel="noreferrer"
+      className="flex items-center gap-3 text-gray-400 hover:text-[#C9A84C] transition group">
+      <span className="w-9 h-9 border border-gray-600 rounded-full flex items-center justify-center group-hover:border-[#C9A84C] transition text-sm flex-shrink-0">in</span>
+      <span className="text-sm">LinkedIn</span>
+    </a>
+    <a href="https://twitter.com" target="_blank" rel="noreferrer"
+      className="flex items-center gap-3 text-gray-400 hover:text-[#C9A84C] transition group">
+      <span className="w-9 h-9 border border-gray-600 rounded-full flex items-center justify-center group-hover:border-[#C9A84C] transition text-sm flex-shrink-0">X</span>
+      <span className="text-sm">Twitter</span>
+    </a>
+  </div>
+</div>
 
         {/* Contact */}
         <div>

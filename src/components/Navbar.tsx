@@ -16,8 +16,9 @@ export default function Navbar() {
         {/* Menu desktop */}
         <ul className="hidden md:flex gap-8 text-sm font-medium">
           <li><Link to="/" className="hover:text-[#C9A84C] transition">Accueil</Link></li>
-          <li><Link to="/contact" className="hover:text-[#C9A84C] transition">Contact</Link></li>
           <li><Link to="/dashboard" className="hover:text-[#C9A84C] transition">Mon espace</Link></li>
+          <li><Link to="/contact" className="hover:text-[#C9A84C] transition">Contact</Link></li>
+
         </ul>
 
         {/* Boutons auth */}
@@ -44,8 +45,8 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden mt-4 flex flex-col gap-4 px-4 pb-4">
           <Link to="/" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Accueil</Link>
-          <Link to="/contact" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Contact</Link>
           <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Mon espace</Link>
+          <Link to="/contact" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Contact</Link>
           <Link to="/login" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Connexion</Link>
           <Link to="/register" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Réserver</Link>
         </div>
