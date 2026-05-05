@@ -1,13 +1,29 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Scroll vers la section Facilities sur la homepage
+  const goToFacilities = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    if (location.pathname === '/') {
+      document.getElementById('facilities')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      navigate('/')
+      setTimeout(() => {
+        document.getElementById('facilities')?.scrollIntoView({ behavior: 'smooth' })
+      }, 300)
+    }
+  }
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-[#08192b77] text-white px-8 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        
+
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold text-[#C9A84C] tracking-widest">
           LUXURY HOTEL
@@ -16,9 +32,8 @@ export default function Navbar() {
         {/* Menu desktop */}
         <ul className="hidden md:flex gap-8 text-sm font-medium">
           <li><Link to="/" className="hover:text-[#C9A84C] transition">Accueil</Link></li>
-          <li><Link to="/dashboard" className="hover:text-[#C9A84C] transition">Mon espace</Link></li>
+          <li><Link to="/dashboard" className="hover:text-[#C9A84C] transition">Tableau de bord</Link></li>
           <li><Link to="/contact" className="hover:text-[#C9A84C] transition">Contact</Link></li>
-
         </ul>
 
         {/* Boutons auth */}
@@ -45,7 +60,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden mt-4 flex flex-col gap-4 px-4 pb-4">
           <Link to="/" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Accueil</Link>
-          <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Mon espace</Link>
+          <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Tableau de bord</Link>
           <Link to="/contact" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Contact</Link>
           <Link to="/login" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Connexion</Link>
           <Link to="/register" onClick={() => setMenuOpen(false)} className="hover:text-[#C9A84C]">Réserver</Link>
@@ -53,4 +68,4 @@ export default function Navbar() {
       )}
     </nav>
   )
-} 
+}

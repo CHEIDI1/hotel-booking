@@ -1,6 +1,8 @@
-﻿import Navbar from '../../components/Navbar'
-import Hero from './hero'
-import Sections from './Sections.tsx'
+import Navbar from '../../components/Navbar'
+import Hero from './Hero'
+import Facilities from './Facilities'
+import RoomsAndRates from './RoomsAndRates'
+import Testimonials from './Testimonials'
 import Footer from '../../components/Footer'
 
 export default function LandingPage() {
@@ -8,7 +10,9 @@ export default function LandingPage() {
     <div>
       <Navbar />
       <Hero />
-      <Sections />
+      <Facilities />
+      <RoomsAndRates />
+      <Testimonials />
       <Footer />
     </div>
   )
