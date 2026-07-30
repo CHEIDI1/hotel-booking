@@ -1,0 +1,7 @@
+users:
+  cheikh:
+    displayname: 'Cheikh'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$e/ZGRtR4qyen9xq7tSu4Yw$n2DZgZhdjYoqPLxL4sLQHNjMJYpzCQBievjYyqf/XbU'  
+    email: 'cheikh@hotel.local'
+    groups:
+      - 'admins'

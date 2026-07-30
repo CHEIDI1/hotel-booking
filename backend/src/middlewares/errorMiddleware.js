@@ -1,0 +1,2 @@
+export function notFound(req, res) { res.status(404).json({ error: `Route ${req.method} ${req.originalUrl} introuvable.` }) }
+export function errorHandler(error, req, res, next) { console.error(error); if (error.code === 11000) return res.status(409).json({ error: 'Cet email est déjà utilisé.' }); return res.status(error.status || 500).json({ error: error.message || 'Erreur interne du serveur.' }) }

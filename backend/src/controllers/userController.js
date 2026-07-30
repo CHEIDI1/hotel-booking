@@ -1,0 +1,7 @@
+import bcrypt from 'bcryptjs'
+import User from '../models/User.js'
+import Reservation from '../models/Reservation.js'
+export async function getMe(req, res, next) { try { const user = await User.findById(req.user.id); res.json({ user }) } catch (error) { next(error) } }
+export async function updateMe(req, res, next) { try { const user = await User.findByIdAndUpdate(req.user.id, { name: req.body.name, email: req.body.email }, { new: true, runValidators: true }); res.json({ user }) } catch (error) { next(error) } }
+export async function updatePassword(req, res, next) { try { const user = await User.findById(req.user.id).select('+password'); if (!(await bcrypt.compare(req.body.currentPassword || '', user.password))) return res.status(401).json({ error: 'Mot de passe actuel incorrect.' }); if (!req.body.newPassword || req.body.newPassword.length < 6) return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir 6 caractères.' }); user.password = await bcrypt.hash(req.body.newPassword, 12); await user.save(); res.json({ message: 'Mot de passe modifié.' }) } catch (error) { next(error) } }
+export async function deleteMe(req, res, next) { try { const user = await User.findById(req.user.id).select('+password'); if (!(await bcrypt.compare(req.body.password || '', user.password))) return res.status(401).json({ error: 'Mot de passe incorrect.' }); await Reservation.deleteMany({ user: user._id }); await user.deleteOne(); res.json({ message: 'Compte supprimé.' }) } catch (error) { next(error) } }

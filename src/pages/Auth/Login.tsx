@@ -1,18 +1,26 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { api, setSession } from '../../lib/api'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const location = useLocation()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (!email || !password) { setError('Veuillez remplir tous les champs'); return }
     if (!email.includes('@')) { setError('Email invalide'); return }
-    navigate('/dashboard')
+    try {
+      const { token } = await api.login(email, password)
+      setSession(token)
+      navigate(location.state?.redirectTo || '/dashboard')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Connexion impossible')
+    }
   }
 
   return (

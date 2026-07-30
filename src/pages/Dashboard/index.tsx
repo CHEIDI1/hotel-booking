@@ -294,6 +294,7 @@ export default function Dashboard() {
                   className="mt-6 block text-center w-full bg-red-50 text-red-500 border border-red-100 py-2.5 rounded-lg text-sm font-medium hover:bg-red-100 transition">
                   Se déconnecter
                 </Link>
+                <Link to="/account" className="mt-3 block text-center w-full border border-[#C9A84C] text-[#0D2137] py-2.5 rounded-lg text-sm font-medium hover:bg-[#fdf3e7] transition">Gérer mon compte</Link>
               </div>
             </div>
           )}

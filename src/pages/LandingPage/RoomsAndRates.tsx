@@ -1,12 +1,25 @@
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import RoomCard from '../../components/RoomCard'
+import ReservationModal from '../../components/ReservationModal'
+import { hasSession } from '../../lib/api'
+import { api } from '../../lib/api'
 
-const rooms = [
-  { nom: "Single Room", prix: 30000, image: "/singleroom.jpg" },
-  { nom: "Double Room", prix: 40000, image: "/Doubleroom.jpg" },
-  { nom: "Twins Room",  prix: 50000, image: "/twinsroom.webp" },
-]
+type Room = { id: string; name: string; price: number; capacity: number; image: string }
 
 export default function RoomsAndRates() {
+  const [rooms, setRooms] = useState<Room[]>([])
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  const [loadError, setLoadError] = useState('')
+  const navigate = useNavigate()
+  useEffect(() => { api.rooms().then(result => setRooms(result.rooms)).catch(() => setLoadError('Les chambres sont indisponibles pour le moment.')) }, [])
+  const startReservation = (room: Room) => {
+    if (!hasSession()) {
+      navigate('/login', { state: { redirectTo: '/' } })
+      return
+    }
+    setSelectedRoom(room)
+  }
   return (
     <section className="py-16 px-6 md:px-20 bg-gray-50">
       <div className="text-center mb-12">
@@ -19,9 +32,11 @@ export default function RoomsAndRates() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {rooms.map((room, index) => (
-          <RoomCard key={index} nom={room.nom} prix={room.prix} image={room.image} />
+          <RoomCard key={room.id} id={room.id} nom={room.name} prix={room.price} image={room.image} onReserve={() => startReservation(room)} />
         ))}
       </div>
+      {loadError && <p className="mt-6 text-center text-sm text-red-600">{loadError}</p>}
+      {selectedRoom && <ReservationModal room={selectedRoom} onClose={() => setSelectedRoom(null)} />}
     </section>
   )
 }

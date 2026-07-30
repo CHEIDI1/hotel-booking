@@ -1,0 +1,47 @@
+
+server:
+  address: 'tcp://:9091'
+
+log:
+  level: 'debug'
+
+totp:
+  issuer: 'hotel.local'
+
+identity_validation:
+  reset_password:
+    jwt_secret: '4ec5fc19946cb937f6ac129f21b29d49f57e71636508c5a1c8491df65fe55292'
+
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: 'hotel.local'
+      policy: 'two_factor'
+
+session:
+  secret: 'ab0e57beea5a24e8e020d4d41c38c6771d01def274cb9d0295e6edd59b64cd41'
+  cookies:
+    - name: 'authelia_session'
+      domain: 'hotel.local'
+      authelia_url: 'https://auth.hotel.local'
+      default_redirection_url: 'https://hotel.local'
+
+regulation:
+  max_retries: 3
+  find_time: '2 minutes'
+  ban_time: '5 minutes'
+
+storage:
+  encryption_key: '1722f5ec1d7c5ee742ea046dc9fb8352d80b40cb4f3a8498a34ae3a7bf8b4ee4'
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:
+  filesystem:
+    filename: '/config/notification.txt'
+ntp:
+  disable_startup_check: true

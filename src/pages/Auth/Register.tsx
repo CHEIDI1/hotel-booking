@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { api, setSession } from '../../lib/api'
 
 export default function Register() {
   const [form, setForm] = useState({ nom: '', email: '', password: '', confirm: '' })
@@ -10,14 +11,20 @@ export default function Register() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (!form.nom || !form.email || !form.password || !form.confirm) { setError('Tous les champs sont requis'); return }
     if (!form.email.includes('@')) { setError('Email invalide'); return }
     if (form.password.length < 6) { setError('Mot de passe trop court (min. 6 caractères)'); return }
     if (form.password !== form.confirm) { setError('Les mots de passe ne correspondent pas'); return }
-    navigate('/dashboard')
+    try {
+      const { token } = await api.register(form.nom, form.email, form.password)
+      setSession(token)
+      navigate('/dashboard')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Inscription impossible")
+    }
   }
 
   return (
