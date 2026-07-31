@@ -17,7 +17,7 @@ export default function Login() {
     try {
       const { token } = await api.login(email, password)
       setSession(token)
-      navigate(location.state?.redirectTo || '/dashboard')
+      navigate(location.state?.redirectTo || '/payment')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Connexion impossible')
     }

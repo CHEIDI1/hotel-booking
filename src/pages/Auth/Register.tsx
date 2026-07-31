@@ -21,7 +21,7 @@ export default function Register() {
     try {
       const { token } = await api.register(form.nom, form.email, form.password)
       setSession(token)
-      navigate('/dashboard')
+      navigate('/payment')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Inscription impossible")
     }

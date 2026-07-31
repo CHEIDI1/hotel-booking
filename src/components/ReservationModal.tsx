@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api, hasSession } from '../lib/api'
+import { hasSession } from '../lib/api'
 
 interface ReservationModalProps {
   room: { id: string; name: string; price: number; capacity: number }
@@ -13,25 +13,18 @@ export default function ReservationModal({ room, onClose }: ReservationModalProp
   const [checkOut, setCheckOut] = useState('')
   const [guests, setGuests] = useState(1)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
 
-  const submit = async (event: React.FormEvent) => {
+  const submit = (event: React.FormEvent) => {
     event.preventDefault()
     if (!hasSession()) {
       navigate('/login')
       return
     }
-    setLoading(true)
-    setError('')
-    try {
-      await api.reserve(room.id, checkIn, checkOut, guests)
-      setSuccess(true)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Réservation impossible.')
-    } finally {
-      setLoading(false)
+    if (!checkIn || !checkOut) {
+      setError('Veuillez choisir les dates.')
+      return
     }
+    navigate('/payment', { state: { room, checkIn, checkOut, guests } })
   }
 
   return (
@@ -45,24 +38,18 @@ export default function ReservationModal({ room, onClose }: ReservationModalProp
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl" aria-label="Fermer">×</button>
         </div>
-        {success ? (
-          <div className="rounded-xl bg-green-50 p-5 text-center">
-            <p className="font-bold text-green-700">Réservation confirmée !</p>
-            <p className="mt-1 text-sm text-green-700">Retrouvez-la dans votre tableau de bord.</p>
-            <button onClick={onClose} className="mt-4 rounded-lg bg-[#0D2137] px-4 py-2 text-sm font-semibold text-white">Fermer</button>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm font-medium text-[#0D2137]">Arrivée<input required min={new Date().toISOString().slice(0, 10)} type="date" value={checkIn} onChange={event => setCheckIn(event.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></label>
+            <label className="text-sm font-medium text-[#0D2137]">Départ<input required min={checkIn || new Date().toISOString().slice(0, 10)} type="date" value={checkOut} onChange={event => setCheckOut(event.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></label>
           </div>
-        ) : (
-          <form onSubmit={submit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <label className="text-sm font-medium text-[#0D2137]">Arrivée<input required min={new Date().toISOString().slice(0, 10)} type="date" value={checkIn} onChange={event => setCheckIn(event.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></label>
-              <label className="text-sm font-medium text-[#0D2137]">Départ<input required min={checkIn || new Date().toISOString().slice(0, 10)} type="date" value={checkOut} onChange={event => setCheckOut(event.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></label>
-            </div>
-            <label className="block text-sm font-medium text-[#0D2137]">Voyageurs<select value={guests} onChange={event => setGuests(Number(event.target.value))} className="mt-1 w-full rounded-lg border p-2.5">{Array.from({ length: room.capacity }, (_, index) => index + 1).map(count => <option key={count} value={count}>{count} voyageur{count > 1 ? 's' : ''}</option>)}</select></label>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            {!hasSession() && <p className="text-sm text-gray-500">Connectez-vous pour confirmer votre réservation.</p>}
-            <button disabled={loading} className="w-full rounded-lg bg-[#C9A84C] py-3 text-sm font-bold uppercase tracking-wider text-[#0D2137] disabled:opacity-60">{loading ? 'Confirmation…' : hasSession() ? 'Confirmer la réservation' : 'Se connecter pour réserver'}</button>
-          </form>
-        )}
+          <label className="block text-sm font-medium text-[#0D2137]">Voyageurs<select value={guests} onChange={event => setGuests(Number(event.target.value))} className="mt-1 w-full rounded-lg border p-2.5">{Array.from({ length: room.capacity }, (_, index) => index + 1).map(count => <option key={count} value={count}>{count} voyageur{count > 1 ? 's' : ''}</option>)}</select></label>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!hasSession() && <p className="text-sm text-gray-500">Connectez-vous pour confirmer votre réservation.</p>}
+          <button className="w-full rounded-lg bg-[#C9A84C] py-3 text-sm font-bold uppercase tracking-wider text-[#0D2137]">
+            {hasSession() ? 'Continuer vers le paiement' : 'Se connecter pour réserver'}
+          </button>
+        </form>
       </div>
     </div>
   )
