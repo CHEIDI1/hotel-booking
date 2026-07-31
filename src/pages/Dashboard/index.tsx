@@ -67,6 +67,7 @@ export default function Dashboard() {
   const annuler = async (id: string) => {
     if (!confirm("Confirmer l'annulation ?")) return
     try {
+      
       await api.cancelReservation(id)
       setReservations(reservations.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
     } catch {
