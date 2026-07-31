@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard'
 import Contact from './pages/Contact'
 import Account from './pages/Account'
 import RequireAuth from './components/RequireAuth'
+import Admin from './pages/Admin'
+import Payment from './pages/Payment'
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
         <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
+        <Route path="/payment" element={<RequireAuth><Payment /></RequireAuth>} />
       </Routes>
     </BrowserRouter>
   )

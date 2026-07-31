@@ -1,3 +1,4 @@
+
 import Room from '../models/Room.js'
 
 export async function seedRooms() {

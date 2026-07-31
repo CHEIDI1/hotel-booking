@@ -1,26 +1,17 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { api, clearSession } from '../../lib/api'
 
-interface Reservation {
-  id: number
-  hotel: string
-  chambre: string
-  dateArrivee: string
-  dateDepart: string
-  prix: number
-  statut: 'En cours' | 'Confirmée' | 'Annulée'
+interface ReservationView {
+  id: string
+  checkIn: string
+  checkOut: string
+  nights: number
+  totalPrice: number
+  status: string
+  room: { name: string; image?: string; price?: number }
 }
-
-const mockReservations: Reservation[] = [
-  { id: 1, hotel: 'Luxury Hotel Dakar', chambre: 'Suite Royale', dateArrivee: '2025-05-10', dateDepart: '2025-05-15', prix: 250000, statut: 'Confirmée' },
-  { id: 2, hotel: 'Luxury Hotel Dakar', chambre: 'Double Room', dateArrivee: '2025-06-01', dateDepart: '2025-06-03', prix: 80000, statut: 'En cours' },
-]
-
-const mockHistorique: Reservation[] = [
-  { id: 3, hotel: 'Luxury Hotel Dakar', chambre: 'Single Room', dateArrivee: '2025-03-05', dateDepart: '2025-03-07', prix: 60000, statut: 'Annulée' },
-  { id: 4, hotel: 'Luxury Hotel Dakar', chambre: 'Twins Room', dateArrivee: '2025-01-20', dateDepart: '2025-01-25', prix: 250000, statut: 'Confirmée' },
-]
 
 const lineData = [
   { month: 'Jan', current: 120, last: 80 },
@@ -41,28 +32,51 @@ const donutData = [
 
 type Tab = 'overview' | 'reservations' | 'historique' | 'profil'
 
-const statutColor: Record<Reservation['statut'], string> = {
-  'Confirmée': 'bg-green-100 text-green-700',
-  'En cours': 'bg-yellow-100 text-yellow-700',
-  'Annulée': 'bg-red-100 text-red-600',
+const statutColor: Record<string, string> = {
+  confirmed: 'bg-green-100 text-green-700',
+  cancelled: 'bg-red-100 text-red-600',
+}
+const statutLabel: Record<string, string> = {
+  confirmed: 'Confirmée',
+  cancelled: 'Annulée',
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [reservations, setReservations] = useState(mockReservations)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [reservations, setReservations] = useState<ReservationView[]>([])
+  const [stats, setStats] = useState({ reservations: 0, totalNights: 0, totalSpent: 0 })
+  const [user, setUser] = useState({ name: '', email: '', createdAt: '' })
+  const [loading, setLoading] = useState(true)
 
-  const totalNuits = [...reservations, ...mockHistorique].reduce((acc, r) =>
-    acc + (new Date(r.dateDepart).getTime() - new Date(r.dateArrivee).getTime()) / 86400000, 0)
+  useEffect(() => {
+    Promise.all([api.dashboard(), api.me()])
+      .then(([dash, me]) => {
+        setReservations(dash.reservations)
+        setStats(dash.statistics)
+        setUser(me.user)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
-  const totalDepenses = [...reservations, ...mockHistorique]
-    .filter(r => r.statut !== 'Annulée')
-    .reduce((acc, r) => acc + r.prix, 0)
+  const activeReservations = reservations.filter(r => r.status === 'confirmed')
+  const pastReservations = reservations
 
-  const annuler = (id: number) => {
-    if (confirm("Confirmer l'annulation ?")) {
-      setReservations(reservations.map(r => r.id === id ? { ...r, statut: 'Annulée' as const } : r))
+  const annuler = async (id: string) => {
+    if (!confirm("Confirmer l'annulation ?")) return
+    try {
+      await api.cancelReservation(id)
+      setReservations(reservations.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
+    } catch {
+      alert("Impossible d'annuler cette réservation.")
     }
+  }
+
+  const handleLogout = () => {
+    clearSession()
+    navigate('/login')
   }
 
   const navItems: { key: Tab; label: string; icon: string }[] = [
@@ -71,6 +85,8 @@ export default function Dashboard() {
     { key: 'historique', label: 'Historique', icon: '📋' },
     { key: 'profil', label: 'Profil', icon: '👤' },
   ]
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Chargement...</div>
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -126,7 +142,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <input placeholder="Rechercher..."
               className="hidden md:block border border-gray-200 rounded-lg px-3 py-1.5 text-xs w-44 focus:outline-none focus:ring-1 focus:ring-[#C9A84C]" />
-            <div className="w-8 h-8 rounded-full bg-[#C9A84C] flex items-center justify-center text-white text-sm font-bold">A</div>
+            <div className="w-8 h-8 rounded-full bg-[#C9A84C] flex items-center justify-center text-white text-sm font-bold">
+              {user.name?.charAt(0).toUpperCase() || 'A'}
+            </div>
           </div>
         </header>
 
@@ -142,23 +160,18 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: 'Réservations', value: reservations.filter(r => r.statut !== 'Annulée').length, change: '+11.01%', up: true },
-                  { label: 'Nuits réservées', value: totalNuits, change: '-0.03%', up: false },
-                  { label: 'Nouveaux clients', value: 3, change: '+15.05%', up: true },
-                  { label: 'Total dépensé', value: `${(totalDepenses / 1000).toFixed(0)}k`, change: '+6.08%', up: true },
+                  { label: 'Réservations', value: stats.reservations },
+                  { label: 'Nuits réservées', value: stats.totalNights },
+                  { label: 'Total dépensé', value: `${stats.totalSpent.toLocaleString()} FCFA` },
                 ].map((s, i) => (
                   <div key={i} className="bg-white rounded-xl p-4 shadow-sm">
                     <p className="text-xs text-gray-400 mb-1">{s.label}</p>
                     <p className="text-2xl font-bold text-gray-800">{s.value}</p>
-                    <p className={`text-xs mt-1 font-medium ${s.up ? 'text-green-500' : 'text-red-400'}`}>
-                      {s.change} {s.up ? '↑' : '↓'}
-                    </p>
                   </div>
                 ))}
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {/* Line Chart */}
                 <div className="bg-white rounded-xl p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-semibold text-gray-700">Réservations / mois</p>
@@ -182,7 +195,6 @@ export default function Dashboard() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Donut Chart */}
                 <div className="bg-white rounded-xl p-5 shadow-sm">
                   <p className="text-sm font-semibold text-gray-700 mb-4">Répartition par chambre</p>
                   <div className="flex items-center gap-4">
@@ -209,23 +221,21 @@ export default function Dashboard() {
           {activeTab === 'reservations' && (
             <div>
               <h1 className="text-xl font-bold text-gray-800 mb-6">Réservations en cours</h1>
+              {activeReservations.length === 0 && <p className="text-gray-400 text-sm">Aucune réservation active.</p>}
               <div className="space-y-4">
-                {reservations.map(r => (
+                {activeReservations.map(r => (
                   <div key={r.id} className="bg-white rounded-xl shadow-sm p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                      <h3 className="font-bold text-[#0D2137]">{r.hotel}</h3>
-                      <p className="text-gray-500 text-sm">{r.chambre}</p>
-                      <p className="text-gray-400 text-xs mt-1">🗓 {r.dateArrivee} → {r.dateDepart}</p>
-                      <p className="text-[#C9A84C] font-bold mt-1 text-sm">{r.prix.toLocaleString()} FCFA</p>
+                      <h3 className="font-bold text-[#0D2137]">{r.room?.name}</h3>
+                      <p className="text-gray-400 text-xs mt-1">🗓 {new Date(r.checkIn).toLocaleDateString()} → {new Date(r.checkOut).toLocaleDateString()}</p>
+                      <p className="text-[#C9A84C] font-bold mt-1 text-sm">{r.totalPrice.toLocaleString()} FCFA</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statutColor[r.statut]}`}>{r.statut}</span>
-                      {r.statut !== 'Annulée' && (
-                        <button onClick={() => annuler(r.id)}
-                          className="px-4 py-1.5 text-xs bg-red-50 text-red-500 border border-red-200 rounded-lg hover:bg-red-100 transition">
-                          Annuler
-                        </button>
-                      )}
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statutColor[r.status]}`}>{statutLabel[r.status]}</span>
+                      <button onClick={() => annuler(r.id)}
+                        className="px-4 py-1.5 text-xs bg-red-50 text-red-500 border border-red-200 rounded-lg hover:bg-red-100 transition">
+                        Annuler
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -241,26 +251,26 @@ export default function Dashboard() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-gray-400 text-xs uppercase">
                     <tr>
-                      {['Hôtel', 'Chambre', 'Arrivée', 'Départ', 'Prix', 'Statut'].map(h => (
+                      {['Chambre', 'Arrivée', 'Départ', 'Prix', 'Statut'].map(h => (
                         <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {mockHistorique.map(r => (
+                    {pastReservations.map(r => (
                       <tr key={r.id} className="hover:bg-gray-50 transition">
-                        <td className="px-4 py-3 font-medium text-gray-800">{r.hotel}</td>
-                        <td className="px-4 py-3 text-gray-500">{r.chambre}</td>
-                        <td className="px-4 py-3 text-gray-500">{r.dateArrivee}</td>
-                        <td className="px-4 py-3 text-gray-500">{r.dateDepart}</td>
-                        <td className="px-4 py-3 text-[#C9A84C] font-bold">{r.prix.toLocaleString()} FCFA</td>
+                        <td className="px-4 py-3 text-gray-500">{r.room?.name}</td>
+                        <td className="px-4 py-3 text-gray-500">{new Date(r.checkIn).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-gray-500">{new Date(r.checkOut).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-[#C9A84C] font-bold">{r.totalPrice.toLocaleString()} FCFA</td>
                         <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statutColor[r.statut]}`}>{r.statut}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statutColor[r.status]}`}>{statutLabel[r.status]}</span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                {pastReservations.length === 0 && <p className="text-gray-400 text-sm p-4">Aucun historique pour l'instant.</p>}
               </div>
             </div>
           )}
@@ -271,29 +281,30 @@ export default function Dashboard() {
               <h1 className="text-xl font-bold text-gray-800 mb-6">Mon Profil</h1>
               <div className="bg-white rounded-xl shadow-sm p-6 max-w-md">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-[#C9A84C] flex items-center justify-center text-white text-2xl font-bold shadow">A</div>
+                  <div className="w-16 h-16 rounded-full bg-[#C9A84C] flex items-center justify-center text-white text-2xl font-bold shadow">
+                    {user.name?.charAt(0).toUpperCase() || 'A'}
+                  </div>
                   <div>
-                    <p className="font-bold text-[#0D2137] text-lg">Ahmed Diallo</p>
-                    <p className="text-gray-400 text-sm">ahmed.diallo@email.com</p>
+                    <p className="font-bold text-[#0D2137] text-lg">{user.name}</p>
+                    <p className="text-gray-400 text-sm">{user.email}</p>
                   </div>
                 </div>
                 <div className="space-y-3 text-sm">
                   {[
-                    { label: 'Membre depuis', val: 'Janvier 2025' },
-                    { label: 'Réservations totales', val: reservations.length + mockHistorique.length },
-                    { label: 'Nuits réservées', val: totalNuits },
-                    { label: 'Statut', val: '⭐ Client Gold' },
+                    { label: 'Membre depuis', val: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' },
+                    { label: 'Réservations totales', val: reservations.length },
+                    { label: 'Nuits réservées', val: stats.totalNights },
                   ].map((row, i) => (
-                    <div key={i} className={`flex justify-between py-2 ${i < 3 ? 'border-b border-gray-100' : ''}`}>
+                    <div key={i} className="flex justify-between py-2 border-b border-gray-100">
                       <span className="text-gray-400">{row.label}</span>
-                      <span className={`font-semibold ${row.label === 'Statut' ? 'text-[#C9A84C]' : 'text-gray-700'}`}>{row.val}</span>
+                      <span className="font-semibold text-gray-700">{row.val}</span>
                     </div>
                   ))}
                 </div>
-                <Link to="/login"
+                <button onClick={handleLogout}
                   className="mt-6 block text-center w-full bg-red-50 text-red-500 border border-red-100 py-2.5 rounded-lg text-sm font-medium hover:bg-red-100 transition">
                   Se déconnecter
-                </Link>
+                </button>
                 <Link to="/account" className="mt-3 block text-center w-full border border-[#C9A84C] text-[#0D2137] py-2.5 rounded-lg text-sm font-medium hover:bg-[#fdf3e7] transition">Gérer mon compte</Link>
               </div>
             </div>
